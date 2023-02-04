@@ -84,18 +84,25 @@ async function getTopTracks(access_token, type='tracks', limit=50, offset=0, tim
     return fetchTopTracks;
 }
 
+/**
+ * Create playlist wrapper for create_playlist button
+ */
 async function createPlayList()
 {
+    // Get and validate data from text fields
+    let event_name = document.getElementById("#event_name");
+    let event_desc = document.getElementById("#event_desc");
+
     let users_songs = [ Owner ]; //Just Owner for debugging
     let length_ms = 40*60*1000; //40 Minutes for debugging
     const song_list = createSongList(users_songs, length_ms);
 
-    let playlist_id = await createSpotifyPlaylist("Test Playlist", "This is a test playlist", Owner.access_token, Owner.id)
+    let playlist_id = await createSpotifyPlaylist(event_name, event_desc, Owner.access_token, Owner.id)
     await addMusicToPlaylist(playlist_id, song_list);
 }
 
 /**
- * Gets users top tracks
+ * Creates list of song URIs using our custom algorithm for determining song choice.
  * @param {JSON Object} users_tracks - Users and their list of top songs
  * @param {int} length_ms - max length for the playlist in milliseconds
  * @return {String Array} - Array of song IDs
@@ -186,6 +193,14 @@ function createSongList(users_tracks, length_ms) {
     return playlist;
 }
 
+/**
+ * Create a playlist on spotify for the user
+ * @param {Strings} name - Name for new playlist
+ * @param {string} description - Description for playlist
+ * @param {string} access_token - Owners access token
+ * @param {string} user_name - User's username
+ * @return {string} - Spotify playlist ID
+ */
 async function createSpotifyPlaylist(name, description, access_token, user_name)
 {
     let options = {
@@ -210,6 +225,12 @@ async function createSpotifyPlaylist(name, description, access_token, user_name)
     return playlist_obj.id;
 }
 
+/**
+ * Add music to a newly created playlist
+ * @param {Strings} playlist_id - Spotify playlist ID
+ * @param {string Array} songs - List of spotify song URIs
+ * @return {string} - Snapshot ID
+ */
 async function addMusicToPlaylist(playlist_id, songs)
 {
     let options = {
@@ -227,6 +248,8 @@ async function addMusicToPlaylist(playlist_id, songs)
             console.log(d);
             return d;
     });
+
+    return result;
 }
 
 /**
