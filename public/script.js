@@ -1,6 +1,9 @@
 /* JS functions for Event-ify
 */
 
+// Array of User Objects
+participants = {}
+
 class Users {
     constructor(name) {
         this.name = name;
@@ -55,33 +58,6 @@ let params = getHashParams();
 let access_token = params.access_token,
     refresh_token = params.refresh_token,
     error = params.error;
-    
-
-/**
- * Gets users top tracks
- * @param {string} access_token - Users access token
- * @param {string} type - the type of top info ("tracks" | "artists")
- * @param {number} limit - the number objects to be returned (1-50)
- * @param {number} offset - the value to start at (1-50)
- * @param {string} time_range - the range of time to grab top info from ("short_term" | "medium_term" | "long_term")
- * @return {JSON Object} - JSON response Object
- */
-async function getTopTracks(access_token, type='tracks', limit=50, offset=0, time_range="short_term") {
-    let options = {
-        method: 'GET',
-        headers: {
-        'Content-Type': 'application/json',
-        'Authorization': ` Bearer ${access_token}`
-        }
-    }
-    let fetchTopTracks = fetch(`https://api.spotify.com/v1/me/top/${type}?limit=${limit}&offset=${offset}&time_range=${time_range}`, options);
-    fetchTopTracks.then(res =>
-        res.json()).then(d => {
-            console.log(d);
-            return d;
-    })
-    return fetchTopTracks;
-}
 
 async function createPlayList()
 {
@@ -222,7 +198,7 @@ function getHashParams() {
 }
 
 let userProfile = {};
-let Owner = new Users("Owner");
+let Owner = {};
 
 if (error) {
     alert('There was an error during the authentication');
@@ -242,7 +218,9 @@ if (error) {
             document.getElementById("owner_name").innerHTML = profile.display_name;
             document.getElementById("owner_email").innerHTML = profile.email;
             Owner = new Users(profile.display_name, access_token, refresh_token)
+            participants.append(Owner);
 
+            console.log("Logged In! Owner Info:")
             console.log(Owner);
         });
     } else {
@@ -253,5 +231,28 @@ if (error) {
 }
 
 function newParticipant() {
-    alert("Added new user!");
+    let new_access_token = prompt("What is your participants access token?");
+    let new_refresh_token = prompt("What is your participants refresh token?");
+    if (new_access_token && new_refresh_token) {
+        const options = {
+            headers: {
+                'Authorization': 'Bearer ' + new_access_token
+            }
+        }
+        fetch('https://api.spotify.com/v1/me', options)
+        .then(resp => resp.json())
+        .then(profile => {
+            participant = new Users(profile.display_name, new_access_token, new_refresh_token);
+            participants.append(participant);
+            let card = document.createElement("div");
+            let name = document.createElement("span");
+            name.innerHTML = profile.display_name
+            let email = document.createElement("span");
+            email.innerHTML = profile.email
+            card.appendChild(name);
+            card.appendChild(email);
+            document.getElementById("participants").appendChild(card);
+            alert("Added new user!");
+        });
+    }
 }
