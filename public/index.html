@@ -23,7 +23,7 @@
   <body>
     <div class="container">
       <div id="login">
-        <h1>Event-ify</h1>
+        <h1 class="center-align">Event-ify</h1>
         <a href="/login" class="btn btn-primary">Log in with Spotify</a>
       </div>
       <div id="loggedin">
@@ -31,7 +31,7 @@
         </div>
         <div id="oauth">
         </div>
-        <button class="btn btn-default" id="obtain-new-token">Obtain new token using the refresh token</button>
+        <button class="btn btn-default center-align" id="obtain-new-token">Obtain new token using the refresh token</button>
       </div>
     </div>
 
@@ -43,7 +43,7 @@
     </script>
 
     <script id="user-profile-template" type="text/x-handlebars-template">
-      <h1>Logged in as {{display_name}}</h1>
+      <!-- <h1>Logged in as {{display_name}}</h1>
       <div class="media">
         <div class="pull-left">
           <img class="media-object" width="150" src="{{images.0.url}}" />
@@ -59,7 +59,47 @@
             <dt>Country</dt><dd>{{country}}</dd>
           </dl>
         </div>
-      </div>
+      </div> -->
+        <h1 class="center-align">Event-ify</h1>
+        <p>Participants:</p>
+        <div class="row">
+          <div class="col s4">
+            <div class="card">
+              <span>John Doe</span>
+              <span>joghnny_123</span>
+            </div>
+          </div>
+        </div>
+        <p>Event Info:</p>
+        <div class="row">
+          <form class="col s12">
+            <div class="row">
+              <div class="input-field col s12">
+                <input id="event_name" type="text" class="validate">
+                <label for="event_name">Event Name</label>
+              </div>
+            </div>
+            <div class="row">
+              <div class="input-field col s12">
+                <input id="event_desc" type="text" class="validate">
+                <label for="event_desc">Event Description</label>
+              </div>
+            </div>
+            <div class="row">
+              <div class="input-field col s6">
+                <input id="event_type" type="text" class="validate">
+                <label for="event_type">Event Type</label>
+              </div>
+              <div class="input-field col s6">
+                <input disabled id="genre" type="text" class="validate">
+                <label for="genre">Genres</label>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="row center-align">
+          <button class="btn btn-default center-align" id="create">Create My Playlist</button>
+        </div>
     </script>
 
     <script id="oauth-template" type="text/x-handlebars-template">
