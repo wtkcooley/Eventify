@@ -5,8 +5,9 @@
 participants = {}
 
 class Users {
-    constructor(name) {
+    constructor(name, id, access_token, refresh_token) {
         this.name = name;
+        this.id = id;
         this.access_token = access_token;
         this.refresh_token = refresh_token;
         this.top_tracks = [];
@@ -66,6 +67,7 @@ async function createPlayList()
     const song_list = createSongList(users_songs, length_ms);
 
     let playlist_id = await createSpotifyPlaylist("Test Playlist", "This is a test playlist", Owner.access_token, Owner.id)
+    await addMusicToPlaylist(playlist_id, song_list);
 }
 
 /**
@@ -86,7 +88,7 @@ function createSongList(users_tracks, length_ms) {
         user.top_tracks.forEach(song => {
 
             // Check multi list
-            let multi_song = multi.find(s => s.ID === song.id);
+            let multi_song = multi.find(s => s.ID === song.uri);
             if (multi_song !== undefined)
             {
                 multi_song.count++;
@@ -94,7 +96,7 @@ function createSongList(users_tracks, length_ms) {
             // Check single list
             else
             {
-                let single_song = single.find(s => s.ID === song.id);
+                let single_song = single.find(s => s.ID === song.uri);
                 if (single_song !== undefined)
                 {
                     // Move song to multi list
@@ -106,7 +108,7 @@ function createSongList(users_tracks, length_ms) {
                 else
                 {
                     // Add new song
-                    let newSong = { ID: song.id, rating: index, count: 1, length_ms: song.duration_ms };
+                    let newSong = { ID: song.uri, rating: index, count: 1, length_ms: song.duration_ms };
                     single.push(newSong);
                 }
             }
@@ -160,7 +162,7 @@ function createSongList(users_tracks, length_ms) {
     return playlist;
 }
 
-async function createSpotifyPlaylist(name, description, access_token, userId)
+async function createSpotifyPlaylist(name, description, access_token, user_name)
 {
     let options = {
         method: 'POST',
@@ -168,18 +170,39 @@ async function createSpotifyPlaylist(name, description, access_token, userId)
             'Content-Type': 'application/json',
             'Authorization': ` Bearer ${access_token}`
         },
-        data: {
+        body: JSON.stringify({
             'name': name,
             'description': description,
             'public': true
-        }
+        })
     }
-    let playlist_obj = await fetch(`https://api.spotify.com/v1/users/${userId}/playlists`, options)
+    let playlist_obj = await fetch(`https://api.spotify.com/v1/users/${user_name}/playlists`, options)
     .then(res =>
-        res.json()).then(d => {
+        res.json())
+        .then(d => {
+            console.log(d);
             return d;
     });
     return playlist_obj.id;
+}
+
+async function addMusicToPlaylist(playlist_id, songs)
+{
+    let options = {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': ` Bearer ${access_token}`
+        },
+        body: JSON.stringify(songs),
+    }
+    let result = await fetch(`https://api.spotify.com/v1/playlists/${playlist_id}/tracks`, options)
+    .then(res =>
+        res.json())
+        .then(d => {
+            console.log(d);
+            return d;
+    });
 }
 
 /**
@@ -219,6 +242,7 @@ if (error) {
             document.getElementById("owner_email").innerHTML = profile.email;
             Owner = new Users(profile.display_name, access_token, refresh_token)
             participants.append(Owner);
+
 
             console.log("Logged In! Owner Info:")
             console.log(Owner);
