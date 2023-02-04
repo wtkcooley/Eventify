@@ -1,8 +1,12 @@
 <!doctype html>
 <html>
   <head>
-    <title>Example of the Implicit Grant flow with Spotify</title>
+    <title>Event playlist builder that takes inspiration from all participants top tracks via Spotify API</title>
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+    <!-- Compiled and minified Materialize CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <!-- Compiled and minified Materialize JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
     <style type="text/css">
       #login, #loggedin {
         display: none;
@@ -19,16 +23,24 @@
   <body>
     <div class="container">
       <div id="login">
-        <h1>This is an example of the Implicit Grant flow</h1>
-        <button id="login-button" class="btn btn-primary">Log in with Spotify</button>
+        <h1>Event-ify</h1>
+        <a href="/login" class="btn btn-primary">Log in with Spotify</a>
       </div>
       <div id="loggedin">
         <div id="user-profile">
         </div>
         <div id="oauth">
         </div>
+        <button class="btn btn-default" id="obtain-new-token">Obtain new token using the refresh token</button>
       </div>
     </div>
+
+    <script id="user-top-info-tempalte" type="text/x-handlebars-template">
+      <h1>{display_name}'s Top Tracks</h1>
+      <ol>
+        <li></li>
+      </ol>
+    </script>
 
     <script id="user-profile-template" type="text/x-handlebars-template">
       <h1>Logged in as {{display_name}}</h1>
@@ -54,6 +66,7 @@
       <h2>oAuth info</h2>
       <dl class="dl-horizontal">
         <dt>Access token</dt><dd class="text-overflow">{{access_token}}</dd>
+        <dt>Refresh token</dt><dd class="text-overflow">{{refresh_token}}</dd>
       </dl>
     </script>
 
@@ -61,8 +74,6 @@
     <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
     <script>
       (function() {
-
-        var stateKey = 'spotify_auth_state';
 
         /**
          * Obtains parameters from the hash of the URL
@@ -79,39 +90,49 @@
         }
 
         /**
-         * Generates a random string containing numbers and letters
-         * @param  {number} length The length of the string
-         * @return {string} The generated string
+         * Gets users top tracks
+         * @param type = "tracks" | "artists"
+         * @param access_token Users access token
+         * @return Object
          */
-        function generateRandomString(length) {
-          var text = '';
-          var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-
-          for (var i = 0; i < length; i++) {
-            text += possible.charAt(Math.floor(Math.random() * possible.length));
-          }
-          return text;
-        };
+        function getTopTracks(type, access_token) {
+          console.log("Here")
+          $.ajax({
+            url: `https://api.spotify.com/v1/me/top/${type}`,
+            headers: {
+              'Authorization': 'Bearer ' + access_token
+            },
+            success: function(response) {
+              console.log("Got top tracks");
+              return response;
+            }
+          });
+        }
 
         var userProfileSource = document.getElementById('user-profile-template').innerHTML,
             userProfileTemplate = Handlebars.compile(userProfileSource),
             userProfilePlaceholder = document.getElementById('user-profile');
 
-            oauthSource = document.getElementById('oauth-template').innerHTML,
+        var oauthSource = document.getElementById('oauth-template').innerHTML,
             oauthTemplate = Handlebars.compile(oauthSource),
             oauthPlaceholder = document.getElementById('oauth');
 
         var params = getHashParams();
 
         var access_token = params.access_token,
-            state = params.state,
-            storedState = localStorage.getItem(stateKey);
+            refresh_token = params.refresh_token,
+            error = params.error;
 
-        if (access_token && (state == null || state !== storedState)) {
+        if (error) {
           alert('There was an error during the authentication');
         } else {
-          localStorage.removeItem(stateKey);
           if (access_token) {
+            // render oauth info
+            oauthPlaceholder.innerHTML = oauthTemplate({
+              access_token: access_token,
+              refresh_token: refresh_token
+            });
+
             $.ajax({
                 url: 'https://api.spotify.com/v1/me',
                 headers: {
@@ -124,31 +145,30 @@
                   $('#loggedin').show();
                 }
             });
+            console.log(getTopTracks("tracks", access_token));
           } else {
+              // render initial screen
               $('#login').show();
               $('#loggedin').hide();
           }
 
-          document.getElementById('login-button').addEventListener('click', function() {
-
-            var client_id = 'CLIENT_ID'; // Your client id
-            var redirect_uri = 'REDIRECT_URI'; // Your redirect uri
-
-            var state = generateRandomString(16);
-
-            localStorage.setItem(stateKey, state);
-            var scope = 'user-read-private user-read-email';
-
-            var url = 'https://accounts.spotify.com/authorize';
-            url += '?response_type=token';
-            url += '&client_id=' + encodeURIComponent(client_id);
-            url += '&scope=' + encodeURIComponent(scope);
-            url += '&redirect_uri=' + encodeURIComponent(redirect_uri);
-            url += '&state=' + encodeURIComponent(state);
-
-            window.location = url;
+          document.getElementById('obtain-new-token').addEventListener('click', function() {
+            $.ajax({
+              url: '/refresh_token',
+              data: {
+                'refresh_token': refresh_token
+              }
+            }).done(function(data) {
+              access_token = data.access_token;
+              oauthPlaceholder.innerHTML = oauthTemplate({
+                access_token: access_token,
+                refresh_token: refresh_token
+              });
+            });
           }, false);
         }
       })();
     </script>
+  </body>
 </html>
+
