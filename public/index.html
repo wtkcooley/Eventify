@@ -95,18 +95,22 @@
          * @param access_token Users access token
          * @return Object
          */
-        function getTopTracks(type, access_token) {
-          console.log("Here")
-          $.ajax({
-            url: `https://api.spotify.com/v1/me/top/${type}`,
+        async function getTopTracks(type, access_token) {
+          console.log("Here");
+          let options = {
+            method: 'GET',
             headers: {
-              'Authorization': 'Bearer ' + access_token
-            },
-            success: function(response) {
-              console.log("Got top tracks");
-              return response;
+              'Content-Type': 'application/json',
+              'Authorization': ` Bearer ${access_token}`
             }
-          });
+          }
+          let resp = fetch(`https://api.spotify.com/v1/me/top/${type}`, options)
+          resp.then(res => {
+            console.log(res);
+            res.json();
+          }).then(d => {
+              console.log(d)
+          })
         }
 
         var userProfileSource = document.getElementById('user-profile-template').innerHTML,
