@@ -1,5 +1,17 @@
-.token-header {
+.title h1 {
+    padding: 20px;
+    margin: 0;
+    margin-bottom: 20px;
+}
+
+.about {
     padding-bottom: 20px;
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+.token-header {
+    padding: 20px;
     border-bottom-width: 2px; 
     border-bottom-style: solid;
     border-bottom-color: #b2dfdb;
@@ -11,6 +23,7 @@
     flex-wrap: wrap;
     align-items: flex-end;
     margin-bottom: 10px;
+    height: auto;
 }
 
 .token-container p {
@@ -22,8 +35,15 @@
     font-size: 8px;
 }
 
+.helper-text {
+    margin-top: 5px;
+}
+
 .participants-container {
-    margin-top: 20px;
+    padding: 20px;
+    border-bottom-width: 2px; 
+    border-bottom-style: solid;
+    border-bottom-color: #b2dfdb;
 }
 
 .chip, .add-participant {
@@ -38,6 +58,10 @@
     background-color: #e4e4e4;
     margin-bottom: 5px;
     margin-right: 5px;
+}
+
+.event-info {
+    padding: 20px;
 }
 
 #login, #loggedin {
