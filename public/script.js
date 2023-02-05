@@ -280,9 +280,9 @@ if (error) {
 
 function newParticipant() {
     let eventify_token = prompt("What is your participants Event-ify token?");
-    new_access_token = eventify_token.split(',')[0];
-    new_refresh_token = eventify_token.split(',')[1];
-    if (new_access_token && new_refresh_token) {
+    if (eventify_token) {
+        new_access_token = eventify_token.split(',')[0];
+        new_refresh_token = eventify_token.split(',')[1];
         const options = {
             headers: {
                 'Authorization': 'Bearer ' + new_access_token
