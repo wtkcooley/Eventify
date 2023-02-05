@@ -66,12 +66,12 @@ let access_token = params.access_token,
 async function createPlayList()
 {
     // Get and validate data from text fields
-    let event_name = document.getElementById("#event_name");
-    let event_desc = document.getElementById("#event_desc");
-
-    let users_songs = [ Owner ]; //Just Owner for debugging
-    let length_ms = 40*60*1000; //40 Minutes for debugging
-    const song_list = createSongList(users_songs, length_ms);
+    let event_name = document.getElementById("event_name").value;
+    let event_desc = document.getElementById("event_desc").value;
+    let playlist_length = document.getElementById("playlist_length").value;
+    
+    let length_ms = playlist_length*60*1000; //Convert minutes to milliseconds
+    const song_list = createSongList(participants, length_ms);
 
     let playlist_id = await createSpotifyPlaylist(event_name, event_desc, Owner.access_token, Owner.id)
     await addMusicToPlaylist(playlist_id, song_list);
@@ -145,7 +145,7 @@ function createSongList(users_tracks, length_ms) {
 
     multi_values.forEach(s => {
         // Return playlist if length becomes to long
-        if ((play_length_ms+s.length_ms) > length_ms)
+        if (play_length_ms > length_ms)
         {
             return playlist;
         }
@@ -156,7 +156,7 @@ function createSongList(users_tracks, length_ms) {
     
     single.forEach(s => {
         // Return playlist if length becomes to long
-        if ((play_length_ms+s.length_ms) > length_ms)
+        if (play_length_ms > length_ms)
         {
             return playlist;
         }

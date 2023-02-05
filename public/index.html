@@ -51,15 +51,23 @@
         <div class="row">
           <form class="col s12">
             <div class="row">
-              <div class="input-field col s12">
-                <input id="event_name" type="text" class="validate">
+              <div class="input-field col s12 active">
+                <input id="event_name" placeholder="e.g. John's Birthday" type="text" class="validate" required>
                 <label for="event_name">Event Name</label>
               </div>
             </div>
             <div class="row">
-              <div class="input-field col s12">
-                <input id="event_desc" type="text" class="validate">
+              <div class="input-field col s12 active">
+                <input id="event_desc" placeholder="e.g. A perfect playlist for a perfect person" type="text" class="validate" required>
                 <label for="event_desc">Event Description</label>
+              </div>
+            </div>
+            <div class="row">
+              <div class="input-field col s6 active">
+                <input id="playlist_length" type="text" class="validate" required>
+                <label for="playlist_length">Playlist Length (minutes)</label>
+              </div>
+              <div class="input-field col s6">
               </div>
             </div>
             <div class="row">
@@ -72,10 +80,10 @@
                 <label for="genre">Genres</label>
               </div>
             </div>
+          </div>
+          <div class="row center-align">
+            <button class="btn btn-default center-align" type="submit" id="create" onclick="javascript: createPlayList()" disabled>Create My Playlist</button>
           </form>
-        </div>
-        <div class="row center-align">
-          <button class="btn btn-default center-align" id="create" onclick="javascript: createPlayList()">Create My Playlist</button>
         </div>
         <div id="oauth">
         </div>
@@ -87,6 +95,31 @@
     <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
     <!--<script src="classes.js"></script>-->
     <script src="script.js"></script>
+    <script>
+      $(document).ready(function() {
+
+        // Set default playlist length
+        $('#playlist_length').val(120);
+
+        // Get references to the input fields and submit button
+        let event_name = $('#event_name');
+        let event_desc = $('#event_desc');
+        let createButton = $('#create');
+    
+        // Function to check the values of the input fields and enable or disable the submit button
+        function checkInputs() {
+          if (event_name.val() !== '' && event_desc.val() !== '') {
+            createButton.prop('disabled', false);
+          } else {
+            createButton.prop('disabled', true);
+          }
+        }
+    
+        // Listen for changes to the values of the input fields
+        event_name.on('input', checkInputs);
+        event_desc.on('input', checkInputs);
+      });
+    </script>
   </body>
 </html>
 
