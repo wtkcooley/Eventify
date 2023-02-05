@@ -49,7 +49,7 @@
         </div>
         <p>Event Info:</p>
         <div class="row">
-          <form class="col s12">
+          <form class="col s12" onsubmit="return false;" id="event_form">
             <div class="row">
               <div class="input-field col s12 active">
                 <input id="event_name" placeholder="e.g. John's Birthday" type="text" class="validate" required>
@@ -82,7 +82,7 @@
             </div>
           </div>
           <div class="row center-align">
-            <button class="btn btn-default center-align" type="submit" id="create" onclick="javascript: createPlayList()" disabled>Create My Playlist</button>
+            <button class="btn btn-default center-align" type="submit" id="create" disabled>Create My Playlist</button>
           </form>
         </div>
         <div id="oauth">
@@ -97,6 +97,11 @@
     <script src="script.js"></script>
     <script>
       $(document).ready(function() {
+        
+        //Submit event form
+        $('#event_form').submit(function() {
+          createPlayList();
+        });
 
         // Set default playlist length
         $('#playlist_length').val(120);

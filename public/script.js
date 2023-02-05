@@ -63,7 +63,7 @@ let access_token = params.access_token,
 /**
  * Create playlist wrapper for create_playlist button
  */
-async function createPlayList()
+async function createPlayList(e)
 {
     // Get and validate data from text fields
     let event_name = document.getElementById("event_name").value;
@@ -72,6 +72,13 @@ async function createPlayList()
     
     let length_ms = playlist_length*60*1000; //Convert minutes to milliseconds
     const song_list = createSongList(participants, length_ms);
+
+    // Validate song list was created correctly
+    if (song_list.length < 0)
+    {
+        alert("Error occurred, song list was empty...");
+        return false;
+    }
 
     let playlist_id = await createSpotifyPlaylist(event_name, event_desc, Owner.access_token, Owner.id)
     await addMusicToPlaylist(playlist_id, song_list);
