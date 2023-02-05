@@ -2,6 +2,10 @@
 
 Event-ify was created in 24hrs for the 2023 CU Hackit Hackathon by William Tristan Cooley and Brandon Evans
 
+# Try me
+
+Checkout my live deployment [here](https://event-ify.onrender.com/)
+
 ## Intro/User Guide
 
 ### What is Event-ify?
