@@ -1,0 +1,52 @@
+.token-header {
+    padding-bottom: 20px;
+    border-bottom-width: 2px; 
+    border-bottom-style: solid;
+    border-bottom-color: #b2dfdb;
+}
+
+.token-container {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    margin-bottom: 10px;
+}
+
+.token-container p {
+    margin-right: 10px;
+}
+
+.token {
+    display: none;
+    font-size: 8px;
+}
+
+.participants-container {
+    margin-top: 20px;
+}
+
+.chip, .add-participant {
+    display: inline-block;
+    height: 32px;
+    font-size: 13px;
+    font-weight: 500;
+    color: rgba(0,0,0,0.6);
+    line-height: 32px;
+    padding: 0 12px;
+    border-radius: 16px;
+    background-color: #e4e4e4;
+    margin-bottom: 5px;
+    margin-right: 5px;
+}
+
+#login, #loggedin {
+    display: none;
+}
+
+.text-overflow {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 500px;
+}

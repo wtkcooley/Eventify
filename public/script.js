@@ -268,12 +268,16 @@ if (error) {
                 return response
             }
         }).then(profile => {
-            document.getElementById("eventify_token").innerHTML = access_token + ',' + refresh_token;
+            let eventify_token = access_token + ',' + refresh_token;
+            console.log(eventify_token.replace(/(\r\n|\n|\r)/gm, ""));
+            document.getElementById("eventify_token").innerHTML = eventify_token.replace(/(\r\n|\n|\r)/gm, "");
+            let profileImg = new Image();
+            profileImg.src = profile.images[0].url;
+            profileImg.alt = profile.display_name + "'s profile image";
+            document.getElementById("owner_chip").appendChild(profileImg);
             document.getElementById("owner_name").innerHTML = profile.display_name;
-            document.getElementById("owner_email").innerHTML = profile.email;
             Owner = new Users(profile.display_name, profile.id, access_token, refresh_token);
             participants.push(Owner);
-
 
             console.log("Logged In! Owner Info:")
             console.log(Owner);
@@ -298,16 +302,40 @@ function newParticipant() {
         fetch('https://api.spotify.com/v1/me', options)
         .then(resp => resp.json())
         .then(profile => {
+            if (participants.find(user => user.id === profile.id)) {
+                alert(profile.display_name + " is already in your event participants. No need to add them again!")
+                return false;
+            }
+            // Create Participant User object and append to participants array
             participant = new Users(profile.display_name, profile.id, new_access_token, new_refresh_token);
             participants.push(participant);
-            let card = document.createElement("div");
+
+            // Create chip element
+            let chip = document.createElement("div");
+            chip.className = "chip participant_chip";
+            chip.id = profile.id;
+
+            // Create profile img and append to chip
+            let profileImg = new Image();
+            profileImg.src = profile.images[0].url;
+            profileImg.alt = profile.display_name + "'s profile image";
+            chip.appendChild(profileImg);
+
+            // Create name element and append to chip
             let name = document.createElement("span");
-            name.innerHTML = profile.display_name
-            let email = document.createElement("span");
-            email.innerHTML = profile.email
-            card.appendChild(name);
-            card.appendChild(email);
-            document.getElementById("participants").appendChild(card);
+            name.className = "participant_name";
+            name.innerHTML = profile.display_name;
+            chip.appendChild(name);
+
+            // Create close icon and add callback function
+            let close = document.createElement("i");
+            close.className = "close material-icons";
+            close.onclick = function() {removeParticipant(profile.id)};
+            close.innerHTML = "close";
+            chip.appendChild(close)
+
+            // Append chip to participants
+            document.getElementById("participants-list").appendChild(chip);
             alert("Added new user!");
         });
     }
@@ -333,4 +361,11 @@ function copyToken() {
 
     // Alert the copied text
     alert("Copied your Event-ify Token!");
+}
+
+function removeParticipant(id) {
+    alert("Removing Participant");
+    participants = participants.filter(function( user ) {
+        return user.id !== id;
+    });
 }
