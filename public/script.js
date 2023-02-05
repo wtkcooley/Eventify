@@ -2,7 +2,7 @@
 */
 
 // Array of User Objects
-participants = {}
+participants = [];
 
 class Users {
     constructor(name, id, access_token, refresh_token) {
@@ -261,10 +261,11 @@ if (error) {
                 return response
             }
         }).then(profile => {
+            document.getElementById("eventify_token").innerHTML = access_token + ',' + refresh_token;
             document.getElementById("owner_name").innerHTML = profile.display_name;
             document.getElementById("owner_email").innerHTML = profile.email;
-            Owner = new Users(profile.display_name, access_token, refresh_token)
-            participants.append(Owner);
+            Owner = new Users(profile.display_name, profile.id, access_token, refresh_token);
+            participants.push(Owner);
 
 
             console.log("Logged In! Owner Info:")
@@ -278,8 +279,9 @@ if (error) {
 }
 
 function newParticipant() {
-    let new_access_token = prompt("What is your participants access token?");
-    let new_refresh_token = prompt("What is your participants refresh token?");
+    let eventify_token = prompt("What is your participants Event-ify token?");
+    new_access_token = eventify_token.split(',')[0];
+    new_refresh_token = eventify_token.split(',')[1];
     if (new_access_token && new_refresh_token) {
         const options = {
             headers: {
@@ -289,8 +291,8 @@ function newParticipant() {
         fetch('https://api.spotify.com/v1/me', options)
         .then(resp => resp.json())
         .then(profile => {
-            participant = new Users(profile.display_name, new_access_token, new_refresh_token);
-            participants.append(participant);
+            participant = new Users(profile.display_name, profile.id, new_access_token, new_refresh_token);
+            participants.push(participant);
             let card = document.createElement("div");
             let name = document.createElement("span");
             name.innerHTML = profile.display_name
@@ -302,4 +304,26 @@ function newParticipant() {
             alert("Added new user!");
         });
     }
+}
+
+function copyToken() {
+    // Get the text to be copied
+    var textToCopy = document.getElementById("eventify_token").innerHTML;
+
+    // Create a textarea element for the text
+    var textarea = document.createElement("textarea");
+    textarea.value = textToCopy;
+    document.body.appendChild(textarea);
+
+    // Select the text in the textarea
+    textarea.select();
+
+    // Copy the text to the clipboard
+    document.execCommand("copy");
+
+    // Remove the textarea element
+    document.body.removeChild(textarea);
+
+    // Alert the copied text
+    alert("Copied your Event-ify Token!");
 }

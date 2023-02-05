@@ -5,6 +5,8 @@
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
     <!-- Compiled and minified Materialize CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <!-- Google Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <!-- Compiled and minified Materialize JavaScript -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
     <style type="text/css">
@@ -28,6 +30,9 @@
       </div>
       <div id="loggedin">
         <h1 class="center-align">Event-ify</h1>
+        <h6>Your Event-ify Token:</h6>
+        <p id="eventify_token"></p>
+        <a class="waves-effect waves-light btn" onclick="javascript: copyToken()"><i class="material-icons left">content_copy</i></a>
         <p>Participants:</p>
         <div class="row">
           <div class="col s4">
