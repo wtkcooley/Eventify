@@ -35,6 +35,7 @@ For security non of our Spotify API keys are in the repo and old ones from past 
 ```
 CLIENT_ID = '<client_id>'
 CLIENT_SECRET = '<client_secret>'
+REDIRECT_URI = 'localhost:8888/callback'
 ```
 
 ### Start `app.js`
