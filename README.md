@@ -6,6 +6,8 @@ Event-ify was created in 24hrs for the 2023 CU Hackit Hackathon by William Trist
 
 Checkout my live deployment [here](https://event-ify.onrender.com/)
 
+NOTE: We currently have basic access to the Spotify API, so you must be added to an beta tester allow list before being able to login with our Spotify OAuth. If you want to use the app feel free to [email us](mailto:williamtcooley@gmail.com) your account email to be added. We have appilied for full developer accounts with Spotify and are hoping to get access soon, so anyone can use the app!
+
 ## Intro/User Guide
 
 ### What is Event-ify?
