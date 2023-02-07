@@ -2,13 +2,13 @@
 
 Event-ify was created in 24hrs for the 2023 CU Hackit Hackathon by William Tristan Cooley and Brandon Evans
 
-# Demo Video
+## Demo Video
 
 Video is too large to embed in this `README.md`, but you can view a demo of the application ![here](https://github.com/wtkcooley/Eventify/blob/main/artifacts/Event-ify%20Demo%20Video.mov)
 
 NOTE: More features may have been added since demo
 
-# Try me
+## Try me
 
 Checkout my live deployment [here](https://event-ify.onrender.com/)
 
