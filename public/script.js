@@ -4,6 +4,8 @@
 // Array of User Objects
 participants = [];
 
+artists = [];
+
 class Users {
     constructor(name, id, access_token, refresh_token) {
         this.name = name;
@@ -33,6 +35,11 @@ class Users {
         }
         let fetch_top_tracks = await fetch(`https://api.spotify.com/v1/me/top/${type}?limit=${limit}&offset=${offset}&time_range=${time_range}`, options)
         .then(res => res.json())
+        .then(res => { 
+            let updateRes = updateArtists(res.items);
+            console.log(`${updateRes == true ? "Successfully" : "Unsuccessfully"} updated artists`);
+            return res;
+        })
         .then(res => res.items);
         return fetch_top_tracks;
     }
@@ -75,7 +82,9 @@ async function createPlayList(e)
         
         let length_ms = playlist_length*60*1000; //Convert minutes to milliseconds
         const song_list = createSongList(participants, length_ms);
-    
+        if (song_list.length <= 0)
+            alert("Cannot create playlist. Song list is empty!");
+
         let playlist_id = await createSpotifyPlaylist(event_name, event_desc, Owner.access_token, Owner.id)
         await addMusicToPlaylist(playlist_id, song_list);
         alert("Playlist was successfully created and added to your Spotify Account!\n(It may take a few seconds to show up in Spotify)");
@@ -100,30 +109,44 @@ function createSongList(users_tracks, length_ms) {
     users_tracks.forEach(user => {
         let index = 0;
         user.top_tracks.forEach(song => {
+            
+            // Check artist list
+            // If multiple artists and one is unselected, don't include song
+            let artist_selected = true;
+            song.artists.forEach(a => {
+                let option_doc = document.getElementById(a.name);
+                if (option_doc.selected === false)
+                    artist_selected = false;
+            });
 
-            // Check multi list
-            let multi_song = multi.find(s => s.ID === song.uri);
-            if (multi_song !== undefined)
+            // Skip song if the artist was not selected
+            if (artist_selected)
             {
-                multi_song.count++;
-            }
-            // Check single list
-            else
-            {
-                let single_song = single.find(s => s.ID === song.uri);
-                if (single_song !== undefined)
+
+                // Check multi list
+                let multi_song = multi.find(s => s.ID === song.uri);
+                if (multi_song !== undefined)
                 {
-                    // Move song to multi list
-                    single = single.filter(s => s !== single_song);
-                    single_song.count++;
-                    single_song.rating += index;
-                    multi.push(single_song);
+                    multi_song.count++;
                 }
+                // Check single list
                 else
                 {
-                    // Add new song
-                    let newSong = { ID: song.uri, rating: index, count: 1, length_ms: song.duration_ms };
-                    single.push(newSong);
+                    let single_song = single.find(s => s.ID === song.uri);
+                    if (single_song !== undefined)
+                    {
+                        // Move song to multi list
+                        single = single.filter(s => s !== single_song);
+                        single_song.count++;
+                        single_song.rating += index;
+                        multi.push(single_song);
+                    }
+                    else
+                    {
+                        // Add new song
+                        let newSong = { ID: song.uri, rating: index, count: 1, length_ms: song.duration_ms };
+                        single.push(newSong);
+                    }
                 }
             }
 
@@ -236,6 +259,77 @@ async function addMusicToPlaylist(playlist_id, songs)
 }
 
 /**
+ * Update the genre list globally when new users are added
+ * @param {JSON Object} top_tracks - List of user's top tracks
+ * @return {bool} - True if successful, False if error
+ */
+function updateArtists(top_tracks)
+{
+    if (top_tracks.length < 1)
+    {
+        alert("Error: cannot update artists list because tracks are empty!");
+        return false;
+    }
+
+    // artist obj: { name, count }
+
+    top_tracks.forEach(s => {
+        s.artists.forEach(a => {
+
+            // Check if artist is already in genre list
+            let artist = artists.find(x => x.name === a.name);
+            if (artist !== undefined)
+            {
+                //Increase count if already in list
+                artist.count++;
+            }
+            else
+            {
+                // Otherwise add new artist to list
+                let newArtist = { name: a.name, count: 1};
+                artists.push(newArtist);
+            }
+        });
+    });
+    
+    refreshArtistList();
+    return true;
+}
+
+// function to refresh genre dropdown list
+function refreshArtistList() {
+
+    // Sort artists array by name
+    let display_artists = artists.sort((a, b) => {
+        let A_name = a.name.toUpperCase();
+        let B_name = b.name.toUpperCase();
+
+        if (A_name < B_name) {
+            return -1;
+        }
+        if (A_name > B_name) {
+            return 1;
+        }
+        return 0;
+    });
+
+    // get the dropdown element and clear the existing options
+    let dropdown = document.getElementById('artists_dropdown');
+    dropdown.innerHTML = '';
+
+    // loop through the artists and add each item as an option
+    display_artists.forEach(option => {
+      let newOption = document.createElement("option");
+      newOption.value = option.name;
+      newOption.text = `${option.name} (${option.count})`;
+      newOption.selected = true;
+      newOption.id = option.name;
+      dropdown.add(newOption);
+    });
+    M.FormSelect.init(document.querySelectorAll("select"));
+  }
+
+/**
  * Obtains parameters from the hash of the URL
  * @return Object
  */
@@ -309,6 +403,7 @@ function newParticipant() {
             // Create Participant User object and append to participants array
             participant = new Users(profile.display_name, profile.id, new_access_token, new_refresh_token);
             participants.push(participant);
+            updateArtists(participants.top_tracks);
 
             // Create chip element
             let chip = document.createElement("div");

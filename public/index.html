@@ -121,6 +121,14 @@
                 </div>
               </div>
               <div class="row">
+                <div class="input-field col s6">
+                  <select multiple id="artists_dropdown" class="validate">
+                  </select>
+                  <label for="artists_dropdown">Included Artists</label>
+                  <span class="helper-text" data-error="Must select at least 1 artist"></span>
+                </div>
+              </div>
+              <div class="row">
                 <div class="input-field col s12 active">
                   <div class="file-field input-field">
                     <div class="btn">
@@ -133,16 +141,6 @@
                   </div>
                 </div>
               </div>
-              <!--<div class="row">
-                <div class="input-field col s6">
-                  <input id="event_type" type="text" class="validate">
-                  <label for="event_type">Event Type</label>
-                </div>
-                <div class="input-field col s6">
-                  <input disabled id="genre" type="text" class="validate">
-                  <label for="genre">Genres</label>
-                </div>
-              </div>-->
             </div>
             <div class="row center-align">
               <button class="btn btn-default center-align" type="submit" id="create" disabled>Create My Playlist</button>
@@ -159,29 +157,32 @@
     <script>
       // Allow collapsables to work
       document.addEventListener('DOMContentLoaded', function() {
-        var elems = document.querySelectorAll('.collapsible');
-        var instances = M.Collapsible.init(elems, {});
+        var instances = M.Collapsible.init(document.querySelectorAll('.collapsible'));
+        instances = M.FormSelect.init(document.querySelectorAll("select"));
       });
+
       $(document).ready(function() {
         // Allow collapsables to work
         //$('.collapsible').collapsible();
         
+        // Set default playlist length
+        $('#playlist_length').val(120);
+
+        // ==== Validate and Control Form Submission ==== //
         //Submit event form
         $('#event_form').submit(function() {
           createPlayList();
         });
 
-        // Set default playlist length
-        $('#playlist_length').val(120);
-
         // Get references to the input fields and submit button
         let event_name = $('#event_name');
         let event_desc = $('#event_desc');
         let createButton = $('#create');
+        let artists_dropdown = document.getElementById('artists_dropdown');
     
         // Function to check the values of the input fields and enable or disable the submit button
         function checkInputs() {
-          if (event_name.val() !== '' && event_desc.val() !== '') {
+          if (event_name.val() !== '' && event_desc.val() !== '' && artists_dropdown.selectedIndex > -1) {
             createButton.prop('disabled', false);
           } else {
             createButton.prop('disabled', true);
@@ -191,6 +192,7 @@
         // Listen for changes to the values of the input fields
         event_name.on('input', checkInputs);
         event_desc.on('input', checkInputs);
+        $('#artists_dropdown').on('change', checkInputs);
 
         // Validate playlist length to be a positive int
         document.getElementById("playlist_length").addEventListener("input", function() {
