@@ -3,17 +3,18 @@
 
 // Array of User Objects
 participants = [];
+const store_participants = "participants";
 
 artists = [];
 
 class Users {
-    constructor(name, id, access_token, refresh_token) {
+    constructor(name, id, access_token, refresh_token, image_src) {
         this.name = name;
         this.id = id;
         this.access_token = access_token;
         this.refresh_token = refresh_token;
+        this.image_src = image_src;
         this.top_tracks = [];
-        this.setTopTracks();
     }
 
     /**
@@ -35,12 +36,8 @@ class Users {
         }
         let fetch_top_tracks = await fetch(`https://api.spotify.com/v1/me/top/${type}?limit=${limit}&offset=${offset}&time_range=${time_range}`, options)
         .then(res => res.json())
-        .then(res => { 
-            let updateRes = updateArtists(res.items);
-            console.log(`${updateRes == true ? "Successfully" : "Unsuccessfully"} updated artists`);
-            return res;
-        })
         .then(res => res.items);
+
         return fetch_top_tracks;
     }
 
@@ -57,7 +54,20 @@ class Users {
     }
 
     async setTopTracks(type='tracks', limit=50, offset=0, time_range="short_term") {
-        await this.getTopTracks(this.access_token, type, limit, offset, time_range).then(response => this.top_tracks = response)
+        return new Promise(async (resolve, reject) => {
+
+            await this.getTopTracks(this.access_token, type, limit, offset, time_range)
+            .then(tracks => {
+                this.top_tracks = tracks;
+                
+                // Run operations that require top tracks when adding new user
+                let updateRes = updateArtists(tracks);
+                console.log(`${updateRes == true ? "Successfully" : "Unsuccessfully"} updated artists`);
+
+                updateParticipants(this);
+            });
+            resolve();
+        });
     }
 }
 
@@ -66,6 +76,7 @@ let params = getHashParams();
 let access_token = params.access_token,
     refresh_token = params.refresh_token,
     error = params.error;
+
 
 /**
  * Create playlist wrapper for create_playlist button
@@ -81,13 +92,28 @@ async function createPlayList(e)
         let playlist_length = document.getElementById("playlist_length").value;
         
         let length_ms = playlist_length*60*1000; //Convert minutes to milliseconds
+        console.log(length_ms);
         const song_list = createSongList(participants, length_ms);
         if (song_list.length <= 0)
+        {
             alert("Cannot create playlist. Song list is empty!");
+            return false;
+        }
 
-        let playlist_id = await createSpotifyPlaylist(event_name, event_desc, Owner.access_token, Owner.id)
-        await addMusicToPlaylist(playlist_id, song_list);
-        alert("Playlist was successfully created and added to your Spotify Account!\n(It may take a few seconds to show up in Spotify)");
+        //Refresh user's access token to prevent bugs
+        
+
+        let owner = participants[0];
+        let playlist_id = await createSpotifyPlaylist(event_name, event_desc, owner.access_token, owner.id)
+        let result = await addMusicToPlaylist(playlist_id, song_list, owner.access_token);
+        if (!result.error)
+        {
+            alert("Playlist was successfully created and added to your Spotify Account!\n(It may take a few seconds to show up in Spotify)");
+        }
+        else
+        {
+            alert(`Playlist could not be created.\nError: ${result.error.message}`);
+        }
         
         // Enable button until playlist is created
         document.getElementById("create").disabled = false;
@@ -163,7 +189,8 @@ function createSongList(users_tracks, length_ms) {
     multi_values = multi.map(s => {
         return {
             ID: s.ID,
-            value: s.rating / s.count
+            value: s.rating / s.count,
+            length_ms: s.length_ms
         };
     });
     
@@ -204,10 +231,10 @@ function createSongList(users_tracks, length_ms) {
  * @param {Strings} name - Name for new playlist
  * @param {string} description - Description for playlist
  * @param {string} access_token - Owners access token
- * @param {string} user_name - User's username
+ * @param {string} user_id - User's Spotify ID
  * @return {string} - Spotify playlist ID
  */
-async function createSpotifyPlaylist(name, description, access_token, user_name)
+async function createSpotifyPlaylist(name, description, access_token, user_id)
 {
     let options = {
         method: 'POST',
@@ -221,7 +248,7 @@ async function createSpotifyPlaylist(name, description, access_token, user_name)
             'public': true
         })
     }
-    let playlist_obj = await fetch(`https://api.spotify.com/v1/users/${user_name}/playlists`, options)
+    let playlist_obj = await fetch(`https://api.spotify.com/v1/users/${user_id}/playlists`, options)
     .then(res =>
         res.json())
         .then(d => {
@@ -235,9 +262,10 @@ async function createSpotifyPlaylist(name, description, access_token, user_name)
  * Add music to a newly created playlist
  * @param {Strings} playlist_id - Spotify playlist ID
  * @param {string Array} songs - List of spotify song URIs
+ * @param {string} access_token - User's access token
  * @return {string} - Snapshot ID
  */
-async function addMusicToPlaylist(playlist_id, songs)
+async function addMusicToPlaylist(playlist_id, songs, access_token)
 {
     let options = {
         method: 'POST',
@@ -267,7 +295,7 @@ function updateArtists(top_tracks)
 {
     if (top_tracks.length < 1)
     {
-        alert("Error: cannot update artists list because tracks are empty!");
+        console.log("Error: cannot update artists list because tracks are empty!");
         return false;
     }
 
@@ -329,25 +357,75 @@ function refreshArtistList() {
     M.FormSelect.init(document.querySelectorAll("select"));
   }
 
-/**
- * Obtains parameters from the hash of the URL
- * @return Object
- */
-function getHashParams() {
-    let hashParams = {};
-    let e, r = /([^&;=]+)=?([^&;]*)/g,
-        q = window.location.hash.substring(1);
-    while ( e = r.exec(q)) {
-        hashParams[e[1]] = decodeURIComponent(e[2]);
-    }
 
-    return hashParams;
+/**
+ * Reset stored participants list when a new instance of the app is started
+ */
+function homeLogin() {
+    // whipe participants list
+    if (localStorage.getItem(store_participants)) {
+        localStorage.removeItem(store_participants);
+    }
+    
+    window.location.replace("/login");
 }
 
-let userProfile = {};
-let Owner = {};
+/**
+ * This allows participants to login via spotify instead of pasting their token
+ */
+function newParticipantLogin() {
+    // Store participants list
+    localStorage.setItem(store_participants, JSON.stringify(participants));
 
-if (error) {
+    window.location.replace("/login");
+}
+
+/**
+ * This updates and adds a new user to the locally stored participants list.
+ *  The old list is removed and a new one replaces it.
+ * @param {*} user New user to add to list
+ */
+function updateParticipants(user) {
+    // Remove stored list
+    if (localStorage.getItem(store_participants)) {
+        localStorage.removeItem(store_participants);
+    }
+    
+    // Update or add new participant
+    let participant = participants.find(x => x.name == user.name);
+    if (participant)
+    {
+        participant.access_token = user.access_token;
+        participant.refresh_token = user.refresh_token;
+        participant.top_tracks = user.top_tracks;
+    }
+    else
+    {
+        user.top_tracks = user.top_tracks;
+        participants.push(user);
+    }
+
+    // Add list back into storage 
+    localStorage.setItem(store_participants, JSON.stringify(participants));
+}
+
+/**
+ * Applies the locally stored participants list to the global participants variable
+ */
+function restoreParticipantList() {
+    // Restore participants when redirected back
+    let partList = localStorage.getItem(store_participants);
+    if (partList)
+    {
+        participants = JSON.parse(partList);
+    }
+}
+
+// Restore the locally stored participants list to the global participants variable
+restoreParticipantList();
+
+// Add new user after page load
+if (error && participants.length < 1) {
     alert('There was an error during the authentication');
 } else {
     if (access_token) {
@@ -365,16 +443,39 @@ if (error) {
             let eventify_token = access_token + ',' + refresh_token;
             console.log(eventify_token.replace(/(\r\n|\n|\r)/gm, ""));
             document.getElementById("eventify_token").innerHTML = eventify_token.replace(/(\r\n|\n|\r)/gm, "");
-            let profileImg = new Image();
-            profileImg.src = profile.images[0].url;
-            profileImg.alt = profile.display_name + "'s profile image";
-            document.getElementById("owner_chip").appendChild(profileImg);
-            document.getElementById("owner_name").innerHTML = profile.display_name;
-            Owner = new Users(profile.display_name, profile.id, access_token, refresh_token);
-            participants.push(Owner);
 
-            console.log("Logged In! Owner Info:")
-            console.log(Owner);
+            // Create new user
+            let image_src = (profile.images[0] ? profile.images[0].url : "user.png");
+            let user = new Users(profile.display_name, profile.id, access_token, refresh_token, image_src);
+            user.setTopTracks().then(x => {
+                
+                // Set owner as first participant and update owner chip
+                let owner = participants[0];
+
+                // Set profile image for chip
+                let profileImg = new Image();
+                profileImg.alt = "img";
+                profileImg.src = owner.image_src
+
+                document.getElementById("owner_chip").appendChild(profileImg);
+                document.getElementById("owner_name").innerHTML = owner.name;
+                if (participants.length >= 1) 
+                {
+                    console.log(participants);
+                    // Recreate chips for restored participants
+                    participants.slice(1).forEach(u => {
+                        createNewChip(u);
+                    });
+
+                    // Update artist list for each person
+                    participants.forEach(u => {
+                        updateArtists(u.top_tracks);
+                    });
+                }
+
+                console.log("Logged In! User Info:")
+                console.log(user);
+            });
         });
     } else {
         // render initial screen
@@ -383,7 +484,10 @@ if (error) {
     }
 }
 
-function newParticipant() {
+/**
+ * Add new participant by pasting their token.
+ */
+function newParticipantToken() {
     let eventify_token = prompt("What is your participants Event-ify token?");
     if (eventify_token) {
         new_access_token = eventify_token.split(',')[0];
@@ -401,39 +505,52 @@ function newParticipant() {
                 return false;
             }
             // Create Participant User object and append to participants array
-            participant = new Users(profile.display_name, profile.id, new_access_token, new_refresh_token);
-            participants.push(participant);
-            updateArtists(participants.top_tracks);
+            let image = (profile.images[0] ? profile.images[0].url : "user.png");
+            participant = new Users(profile.display_name, profile.id, new_access_token, new_refresh_token, image);
 
-            // Create chip element
-            let chip = document.createElement("div");
-            chip.className = "chip participant_chip";
-            chip.id = profile.id;
+            participant.setTopTracks().then(x => {
+                updateArtists(participant.top_tracks);
 
-            // Create profile img and append to chip
-            let profileImg = new Image();
-            profileImg.src = profile.images[0].url;
-            profileImg.alt = profile.display_name + "'s profile image";
-            chip.appendChild(profileImg);
-
-            // Create name element and append to chip
-            let name = document.createElement("span");
-            name.className = "participant_name";
-            name.innerHTML = profile.display_name;
-            chip.appendChild(name);
-
-            // Create close icon and add callback function
-            let close = document.createElement("i");
-            close.className = "close material-icons";
-            close.onclick = function() {removeParticipant(profile.id)};
-            close.innerHTML = "close";
-            chip.appendChild(close)
-
-            // Append chip to participants
-            document.getElementById("participants-list").appendChild(chip);
-            alert("Added new user!");
+                createNewChip(participant);
+    
+                alert("Added new user!");
+            })
         });
     }
+}
+
+/**
+ * Creates new participant chip to display users on front-end
+ * @param {User} user user to create new chip for
+ */
+function createNewChip(user)
+{
+    // Create chip element
+    let chip = document.createElement("div");
+    chip.className = "chip participant_chip";
+    chip.id = user.id;
+
+    // Create profile img and append to chip
+    let profileImg = new Image();
+    profileImg.src = user.image_src;
+    profileImg.alt = "img";
+    chip.appendChild(profileImg);
+
+    // Create name element and append to chip
+    let name = document.createElement("span");
+    name.className = "participant_name";
+    name.innerHTML = user.name;
+    chip.appendChild(name);
+
+    // Create close icon and add callback function
+    let close = document.createElement("i");
+    close.className = "close material-icons";
+    close.onclick = function() {removeParticipant(user.id)};
+    close.innerHTML = "close";
+    chip.appendChild(close)
+
+    // Append chip to participants
+    document.getElementById("participants-list").appendChild(chip);
 }
 
 function copyToken() {
@@ -463,4 +580,28 @@ function removeParticipant(id) {
     participants = participants.filter(function( user ) {
         return user.id !== id;
     });
+
+    // Update locally stored participants list
+    // Remove stored list
+    if (localStorage.getItem(store_participants)) {
+        localStorage.removeItem(store_participants);
+    }
+
+    // Add list back into storage 
+    localStorage.setItem(store_participants, JSON.stringify(participants));
+}
+
+/**
+ * Obtains parameters from the hash of the URL
+ * @return Object
+ */
+function getHashParams() {
+    let hashParams = {};
+    let e, r = /([^&;=]+)=?([^&;]*)/g,
+        q = window.location.hash.substring(1);
+    while ( e = r.exec(q)) {
+        hashParams[e[1]] = decodeURIComponent(e[2]);
+    }
+
+    return hashParams;
 }
