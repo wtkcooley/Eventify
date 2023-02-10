@@ -35,7 +35,7 @@
           </p>
           <br>
           <h6>How do I use Event-ify?</h6>
-          <p>All you need to do to start is <a href="/login">login with Spotify</a>. You will then be redirected to our event 
+          <p>All you need to do to start is <a onclick="javascript: homeLogin()">login with Spotify</a>. You will then be redirected to our event 
             creation page where you can fill out information to describe your event and add participants to your event (you 
             are added as a participant by default). To add participants just ask your guests to login to Event-ify and send
             you their personal Event-ify Token which can be found and copied their clipboard at the top of the page when they
@@ -44,7 +44,7 @@
           <br>
         </div>
         <div>
-          <a href="/login" class="btn btn-primary">Log in with Spotify</a>
+          <a class="btn btn-primary" onclick="javascript: homeLogin()">Log in with Spotify</a>
         </div>
       </div>
       <div id="loggedin">
@@ -82,7 +82,7 @@
                 <span id="owner_name"></span>
               </div>
             </span>
-            <a class="waves-effect waves-light btn z-depth-0 add-participant" onclick="javascript: newParticipant()"><i class="material-icons right">add</i>Add new participant</a>
+            <a class="waves-effect waves-light btn modal-trigger z-depth-0 add-participant" href="#new-participant-modal"><i class="material-icons right">add</i>Add new participant</a>
           </div>
           <br>
           <ul class="collapsible">
@@ -149,7 +149,25 @@
         </div>
       </div>
     <!--</div>-->
-        
+
+    <!--Modals-->
+    <div id="new-participant-modal" class="modal" style="height: 240px; width: 500px;">
+      <div class="modal-content center-align">
+        <h4>Add a New Participant</h4>
+        <br />
+        <div class="row">
+          <div class="col s12">
+            <a class="modal-close waves-effect waves-green btn" href="/login">Sign In With Spotify</a>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col s12">
+            <a class="modal-close waves-effect waves-green btn" onclick="javascript: newParticipantToken()">Paste Event-ify Token</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <script src="//cdnjs.cloudflare.com/ajax/libs/handlebars.js/2.0.0-alpha.1/handlebars.min.js"></script>
     <script src="https://code.jquery.com/jquery-1.10.1.min.js"></script>
     <!--<script src="classes.js"></script>-->
@@ -157,8 +175,9 @@
     <script>
       // Allow collapsables to work
       document.addEventListener('DOMContentLoaded', function() {
-        var instances = M.Collapsible.init(document.querySelectorAll('.collapsible'));
-        instances = M.FormSelect.init(document.querySelectorAll("select"));
+        let collapsible = M.Collapsible.init(document.querySelectorAll('.collapsible'));
+        let form = M.FormSelect.init(document.querySelectorAll("select"));
+        let modal = M.Modal.init(document.querySelectorAll('.modal'));
       });
 
       $(document).ready(function() {
