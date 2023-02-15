@@ -13,142 +13,148 @@
     <link rel="stylesheet" href="style.css">
     <!-- Metadata for emojis -->
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
   </head>
 
   <body>
-    <!--<div class="container">--->
-      <div class="center-align" id="login">
-        <div class="teal title">
-          <h1 class="center-align white-text">&#127881;Event-ify&#127925;</h1>
-        </div>
-        <div class="about">
-          <h6>What is Event-ify?</h6>
-          <p>Are you hosting an event and want to ensure the playlist reflects everyone's taste? Look no further!
-            Event-ify allows you and your guests/event participants to log in with Spotify and create a playlist that
-            reflects everyone's musical taste.
-          </p>
-          <br>
-          <h6>How does Event-ify work?</h6>
-          <p>Event-ify uses Spotify's API to get the top 50 tracks you and your friends have each been listening to, then
-            uses our special Event-ify algorithm to generate a playlist that is automatically added to your Spotify account,
-            prioritizing you and your participants shared top songs and your most listened-to songs.
-          </p>
-          <br>
-          <h6>How do I use Event-ify?</h6>
-          <p>All you need to do to start is <a onclick="javascript: homeLogin()">login with Spotify</a>. You will then be redirected to our event 
-            creation page where you can fill out information to describe your event and add participants to your event (you 
-            are added as a participant by default). To add participants just ask your guests to login to Event-ify and send
-            you their personal Event-ify Token which can be found and copied their clipboard at the top of the page when they
-            login.
-          </p>
-          <br>
-        </div>
-        <div>
-          <a class="btn btn-primary" onclick="javascript: homeLogin()">Log in with Spotify</a>
-        </div>
+    <header class="center-align">
+      <div class="teal title">
+        <h2 class="center-align white-text">&#127881;Event-ify&#127925;</h2>
       </div>
-      <div id="loggedin">
-        <div class="center-align">
-          <div class="teal title">
-            <h1 class="center-align white-text">&#127881;Event-ify&#127925;</h1>
-          </div>
-        </div>
-        <!-- Token Header -->
-        <div class="token-header">
-          <div class="token-container">
-            <p>Event-ify Token:</p>
-            <a class="waves-effect waves-light btn-small" onclick="javascript: copyToken()"><i class="material-icons left">content_copy</i>Copy token to clipboard</a>
-            <span class="token" id="eventify_token"></span>
-          </div>
-          <br>
-          <ul class="collapsible">
-            <li>
-              <div class="collapsible-header">
-                <span class="helper-text text-darken-3 grey-text">Are you participanting in someone else's Event-ify playlist?</span>
-              </div>
-              <div class="collapsible-body">
-                <span class="helper-text text-darken-1 grey-text">Just click <i class="material-icons tiny">mouse</i>
-                "COPY TOKEN TO CLIPBOARD" above &#128070; and then send it to your event organize</span>
-              </div>
-            </li> 
-          </ul>
-        </div>
-        <!-- Participants Section -->
-        <div class="participants-container" id="participants-container">
-          <p>Participants:</p>
-          <div class="participant" id="participants">
-            <span class="participants-list" id="participants-list">
-              <div class="chip" id="owner_chip">
-                <span id="owner_name"></span>
-              </div>
-            </span>
-            <a class="waves-effect waves-light btn modal-trigger z-depth-0 add-participant" href="#new-participant-modal"><i class="material-icons right">add</i>Add new participant</a>
+    </header>
+    <!--Not Logged In-->
+    <div class="center-align" id="login">
+      <row>
+        <div class="col s12 about">
+          <div class="description-container">
+            <h6>What is Event-ify?</h6>
+            <p>Are you hosting an event and want to ensure the playlist reflects everyone's taste? Look no further!
+              Event-ify allows you and your guests/event participants to log in with Spotify and create a playlist that
+              reflects everyone's musical taste.
+            </p>
           </div>
           <br>
-          <ul class="collapsible">
-            <li>
-              <div class="collapsible-header"><span class="helper-text text-darken-3 grey-text">How do I get my participants Event-ify tokens?</span></div>
-              <div class="collapsible-body"><p class="helper-text text-darken-1 grey-text">Just ask them to sign in with Event-ify and click
-                <i class="material-icons tiny">mouse</i> "COPY TOKEN TO CLIPBOARD" then send the token to you</p></div>
-            </li>
-          </ul>
+          <div class="description-container">
+            <h6>How does Event-ify work?</h6>
+            <p>Event-ify uses Spotify's API to get the top 50 tracks you and your friends have each been listening to, then
+              uses our special Event-ify algorithm to generate a playlist that is automatically added to your Spotify account,
+              prioritizing you and your participants shared top songs and your most listened-to songs.
+            </p>
+          </div>
+          <br>
+          <div class="description-container">
+            <h6>How do I use Event-ify?</h6>
+            <p>All you need to do to start is <a onclick="javascript: homeLogin()">login with Spotify</a>. You will then be redirected to our event 
+              creation page where you can fill out information to describe your event and add participants to your event (you 
+              are added as a participant by default). To add participants just ask your guests to login to Event-ify and send
+              you their personal Event-ify Token which can be found and copied their clipboard at the top of the page when they
+              login.
+            </p>
+          </div>
+          <br>
+          <div class="login-btn-container">
+            <a class="btn btn-primary btn-large" onclick="javascript: homeLogin()">Log in with Spotify</a>
+          </div>
         </div>
-        <!-- Event Form -->
-        <div class="event-info">
-          <p>Event Info:</p>
-          <div class="row">
-            <form class="col s12" onsubmit="return false;" id="event_form">
-              <div class="row">
-                <div class="input-field col s12 active">
-                  <input id="event_name" placeholder="e.g. John's Birthday" type="text" class="validate" required>
-                  <label for="event_name">Event Name</label>
-                </div>
+      </row>
+    </div>
+    <!--Logged In-->
+    <div id="loggedin">
+      <!-- Token Header -->
+      <div class="token-header">
+        <div class="token-container">
+          <p>Event-ify Token:</p>
+          <a class="waves-effect waves-light btn-small" onclick="javascript: copyToken()"><i class="material-icons left">content_copy</i>Copy token to clipboard</a>
+          <span class="token" id="eventify_token"></span>
+        </div>
+        <br>
+        <ul class="collapsible">
+          <li>
+            <div class="collapsible-header">
+              <span class="helper-text text-darken-3 grey-text">Are you participanting in someone else's Event-ify playlist?</span>
+            </div>
+            <div class="collapsible-body">
+              <span class="helper-text text-darken-1 grey-text">Just click <i class="material-icons tiny">mouse</i>
+              "COPY TOKEN TO CLIPBOARD" above &#128070; and then send it to your event organize</span>
+            </div>
+          </li> 
+        </ul>
+      </div>
+      <!-- Participants Section -->
+      <div class="participants-container" id="participants-container">
+        <p>Participants:</p>
+        <div class="participant" id="participants">
+          <span class="participants-list" id="participants-list">
+            <div class="chip" id="owner_chip">
+              <span id="owner_name"></span>
+            </div>
+          </span>
+          <a class="waves-effect waves-light btn modal-trigger z-depth-0 add-participant" href="#new-participant-modal"><i class="material-icons right">add</i>Add new participant</a>
+        </div>
+        <br>
+        <ul class="collapsible">
+          <li>
+            <div class="collapsible-header"><span class="helper-text text-darken-3 grey-text">How do I get my participants Event-ify tokens?</span></div>
+            <div class="collapsible-body"><p class="helper-text text-darken-1 grey-text">Just ask them to sign in with Event-ify and click
+              <i class="material-icons tiny">mouse</i> "COPY TOKEN TO CLIPBOARD" then send the token to you</p></div>
+          </li>
+        </ul>
+      </div>
+      <!-- Event Form -->
+      <div class="event-info">
+        <p>Event Info:</p>
+        <div class="row">
+          <form class="col s12" onsubmit="return false;" id="event_form">
+            <div class="row">
+              <div class="input-field col s12 active">
+                <input id="event_name" placeholder="e.g. John's Birthday" type="text" class="validate" required>
+                <label for="event_name">Event Name</label>
               </div>
-              <div class="row">
-                <div class="input-field col s12 active">
-                  <input id="event_desc" placeholder="e.g. A perfect playlist for a perfect person" type="text" class="validate" required>
-                  <label for="event_desc">Event Description</label>
-                </div>
+            </div>
+            <div class="row">
+              <div class="input-field col s12 active">
+                <input id="event_desc" placeholder="e.g. A perfect playlist for a perfect person" type="text" class="validate" required>
+                <label for="event_desc">Event Description</label>
               </div>
-              <div class="row">
-                <div class="input-field col s6 active">
-                  <input id="playlist_length" placeholder="e.g. 120" type="text" class="validate" required>
-                  <label for="playlist_length">Playlist Length (minutes)</label>
-                </div>
-                <div class="input-field col s6">
-                  <input id="event_type" placeholder="e.g. Birthday" type="text" class="validate">
-                  <label for="event_type">Event Type</label>
-                </div>
+            </div>
+            <div class="row">
+              <div class="input-field col s6 active">
+                <input id="playlist_length" placeholder="e.g. 120" type="text" class="validate" required>
+                <label for="playlist_length">Playlist Length (minutes)</label>
               </div>
-              <div class="row">
-                <div class="input-field col s6">
-                  <select multiple id="artists_dropdown" class="validate">
-                  </select>
-                  <label for="artists_dropdown">Included Artists</label>
-                  <span class="helper-text" data-error="Must select at least 1 artist"></span>
-                </div>
+              <div class="input-field col s6">
+                <input id="event_type" placeholder="e.g. Birthday" type="text" class="validate">
+                <label for="event_type">Event Type</label>
               </div>
-              <div class="row">
-                <div class="input-field col s12 active">
-                  <div class="file-field input-field">
-                    <div class="btn">
-                      <span>Playlist Photo</span>
-                      <input type="file" id="playlist_photo">
-                    </div>
-                    <div class="file-path-wrapper">
-                      <input class="file-path validate" type="text">
-                    </div>
+            </div>
+            <div class="row">
+              <div class="input-field col s12">
+                <select multiple id="artists_dropdown" class="validate">
+                </select>
+                <label for="artists_dropdown">Included Artists</label>
+                <span class="helper-text" data-error="Must select at least 1 artist"></span>
+              </div>
+            </div>
+            <div class="row">
+              <div class="input-field col s12 active">
+                <div class="file-field input-field">
+                  <div class="btn">
+                    <span>Playlist Photo</span>
+                    <input type="file" id="playlist_photo">
+                  </div>
+                  <div class="file-path-wrapper">
+                    <input class="file-path validate" type="text">
                   </div>
                 </div>
               </div>
             </div>
-            <div class="row center-align">
-              <button class="btn btn-default center-align" type="submit" id="create" disabled>Create My Playlist</button>
-            </form>
           </div>
+          <div class="row center-align">
+            <button class="btn btn-default center-align" type="submit" id="create" disabled>Create My Playlist</button>
+          </form>
         </div>
       </div>
-    <!--</div>-->
+    </div>
 
     <!--Modals-->
     <div id="new-participant-modal" class="modal" style="height: 240px; width: 500px;">
