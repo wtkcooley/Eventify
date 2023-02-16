@@ -69,6 +69,8 @@ class Users {
             resolve();
         });
     }
+
+    //refreshAccessToken() {}
 }
 
 let params = getHashParams();
@@ -77,6 +79,18 @@ let access_token = params.access_token,
     refresh_token = params.refresh_token,
     error = params.error;
 
+async function refreshToken(user_id) {
+    user_index = participants.findIndex(user => user.id === user_id);
+
+    return $.ajax({
+        url: '/refresh_token',
+        data: {
+            'refresh_token': participants[user_index].refresh_token
+        }
+    }).then(function(data) {
+        participants[user_index].access_token = data.access_token;
+    });
+}
 
 /**
  * Create playlist wrapper for create_playlist button
@@ -102,21 +116,27 @@ async function createPlayList(e)
 
         //Refresh user's access token to prevent bugs
         
-
         let owner = participants[0];
-        let playlist_id = await createSpotifyPlaylist(event_name, event_desc, owner.access_token, owner.id)
-        let result = await addMusicToPlaylist(playlist_id, song_list, owner.access_token);
-        if (!result.error)
-        {
-            alert("Playlist was successfully created and added to your Spotify Account!\n(It may take a few seconds to show up in Spotify)");
-        }
-        else
-        {
-            alert(`Playlist could not be created.\nError: ${result.error.message}`);
-        }
-        
-        // Enable button until playlist is created
-        document.getElementById("create").disabled = false;
+        refreshToken(owner.id).then(async response => {
+            let playlist_obj = await createSpotifyPlaylist(event_name, event_desc, owner.id);
+            if (playlist_obj.hasOwnProperty("error")) {
+                alert(`Playlist could not be created.\nError: ${playlist_obj.error.message}`);
+            } else {
+                playlist_id = playlist_obj.id;
+                let result = await addMusicToPlaylist(playlist_id, song_list, owner.access_token);
+                if (!result.error)
+                {
+                    alert("Playlist was successfully created and added to your Spotify Account!\n(It may take a few seconds to show up in Spotify)");
+                }
+                else
+                {
+                    alert(`Playlist was created, but there was an error adding music...\nError: ${result.error.message}`);
+                }
+            }
+        }).finally(
+            // Enable button until playlist is created
+            document.getElementById("create").disabled = false
+        )
 }
 
 /**
@@ -230,17 +250,18 @@ function createSongList(users_tracks, length_ms) {
  * Create a playlist on spotify for the user
  * @param {Strings} name - Name for new playlist
  * @param {string} description - Description for playlist
- * @param {string} access_token - Owners access token
  * @param {string} user_id - User's Spotify ID
- * @return {string} - Spotify playlist ID
+ * @return {string} - Spotify playlist object
  */
-async function createSpotifyPlaylist(name, description, access_token, user_id)
+async function createSpotifyPlaylist(name, description, user_id)
 {
+    user_index = participants.findIndex(user => user.id === user_id);
+    
     let options = {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': ` Bearer ${access_token}`
+            'Authorization': ` Bearer ${participants[user_index].access_token}`
         },
         body: JSON.stringify({
             'name': name,
@@ -248,14 +269,17 @@ async function createSpotifyPlaylist(name, description, access_token, user_id)
             'public': true
         })
     }
+    
+    // Try to create new playlist
     let playlist_obj = await fetch(`https://api.spotify.com/v1/users/${user_id}/playlists`, options)
-    .then(res =>
-        res.json())
-        .then(d => {
-            console.log(d);
-            return d;
-    });
-    return playlist_obj.id;
+        .then(res => {
+            return res.json();
+        })
+        .then(data => {
+            return data;
+        })
+
+    return playlist_obj;
 }
 
 /**
@@ -279,7 +303,6 @@ async function addMusicToPlaylist(playlist_id, songs, access_token)
     .then(res =>
         res.json())
         .then(d => {
-            console.log(d);
             return d;
     });
 
@@ -355,7 +378,7 @@ function refreshArtistList() {
       dropdown.add(newOption);
     });
     M.FormSelect.init(document.querySelectorAll("select"));
-  }
+}
 
 
 /**
@@ -474,7 +497,7 @@ if (error && participants.length < 1) {
                 }
 
                 console.log("Logged In! User Info:")
-                console.log(user);
+                console.log(owner);
             });
         });
     } else {
